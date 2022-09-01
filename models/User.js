@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs"
+import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
   email: {
     type: String,
     required: true,
@@ -19,10 +23,10 @@ const userSchema = new mongoose.Schema({
 });
 
 userSchema.pre("save", async function (next) {
-  const user = tris;
-  if (!user.isDirectModified("passoword")) return next();
+  const user = this;
+  if (!user.isDirectModified("password")) return next();
   try {
-    const salt = await bcrypt.getSalt(10);
+    const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(user.password, salt);
     next();
   } catch (error) {
@@ -31,5 +35,8 @@ userSchema.pre("save", async function (next) {
   }
 });
 
+userSchema.methods.comparePassword = async function (canditatePassword) {
+  return await bcrypt.compare(canditatePassword, this.password);
+};
 
-export const User = mongoose.model("user", userSchema)
+export const User = mongoose.model("user", userSchema);
